@@ -3,6 +3,9 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "GameFramework/Controller.h"
 
 // Sets default values
 ASweaponCharacterBase::ASweaponCharacterBase()
@@ -28,16 +31,19 @@ ASweaponCharacterBase::ASweaponCharacterBase()
 	FollowCamera->bUsePawnControlRotation = false; // 카메라는 스프링 암을 따라가기만 하면 되므로 자체 회전 x
 }
 
-UAbilitySystemComponent* ASweaponCharacterBase::GetAbilitySystemComponent() const
-{
-	// 현재 캐릭터의 ASC 반환
-	return AbilitySystemComponent;
-}
-
 // Called when the game starts or when spawned
 void ASweaponCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 게임이 시작될 때 컨트롤러에 IMC(매핑 컨텍스트)를 등록
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
 	
 }
 
@@ -53,5 +59,53 @@ void ASweaponCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	// InputComponent를 향상된 입력 컴포넌트로 캐스팅하여 IA를 바인딩
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		// MoveAction이 실행될 때(Triggered) Move 함수 호출
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASweaponCharacterBase::Move);
+
+		// LookAction이 실행될 때(Triggered) Look 함수 호출
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASweaponCharacterBase::Look);
+	}
+
 }
 
+void ASweaponCharacterBase::Move(const FInputActionValue& Value)
+{
+	// 입력값(W,A,S,D)은 2차원 벡터(X, Y)로 들어옴
+	FVector2D MovementVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// 카메라가 바라보는 방향을 기준으로 앞(Forward)과 옆(Right)을 계산
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		// 캐릭터에게 이동 명령
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
+}
+
+void ASweaponCharacterBase::Look(const FInputActionValue& Value)
+{
+	// 마우스 이동값도 2차원 벡터로 들어옴
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// 컨트롤러의 좌우 회전(Yaw)과 상하 회전(Pitch)에 마우스 이동값을 더함
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+UAbilitySystemComponent* ASweaponCharacterBase::GetAbilitySystemComponent() const
+{
+	// 현재 캐릭터의 ASC 반환
+	return AbilitySystemComponent;
+}

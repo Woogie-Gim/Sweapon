@@ -4,11 +4,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "InputActionValue.h"
 #include "SweaponCharacterBase.generated.h"
 
 class UAbilitySystemComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class UInputMappingContext;
+class UInputAction;
 
 UCLASS()
 class SWEAPON_API ASweaponCharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -37,7 +40,21 @@ protected:
 	// 캐릭터를 따라다니는 메인 카메라 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* FollowCamera;
+
+	// 블루프린트에서 매핑 컨텍스트(IMC)를 지정할 변수
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DefaultMappingContext;
+
+	// 블루프린트에서 점프, 이동, 시점 액션(IA)을 지정할 변수
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* MoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* LookAction;
 	
+	// 실제 이동과 시점 회전을 처리할 함수 선언
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
 
 public:	
 	// Called every frame
