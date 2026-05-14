@@ -40,12 +40,6 @@ void ASweaponCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// GAS 초기화: 이 ASC의 소유자(Owner)와 아바타(Avatar)가 모두 이 캐릭터(this)임을 선언
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	}
-
 	// 게임이 시작될 때 컨트롤러에 IMC(매핑 컨텍스트)를 등록
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -118,4 +112,15 @@ UAbilitySystemComponent* ASweaponCharacterBase::GetAbilitySystemComponent() cons
 {
 	// 현재 캐릭터의 ASC 반환
 	return AbilitySystemComponent;
+}
+
+void ASweaponCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// 플레이어 컨트롤러가 캐릭터에 Possess된 직후에 GAS를 초기화
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
 }

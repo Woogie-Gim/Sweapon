@@ -30,6 +30,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// 컨트롤러가 이 캐릭터에 빙의할 때 호출되는 함수 오버라이드
+	virtual void PossessedBy(AController* NewController) override;
+
 	// 어빌리티 시스템 제어 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystemComponent;
