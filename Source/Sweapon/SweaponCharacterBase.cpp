@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Controller.h"
+#include "SweaponAttributeSet.h"
 
 // Sets default values
 ASweaponCharacterBase::ASweaponCharacterBase()
@@ -15,6 +16,9 @@ ASweaponCharacterBase::ASweaponCharacterBase()
 
 	// ASC 컴포넌트 생성 및 부착
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+
+	// Attribute Set 생성 및 캐릭터 부착
+	AttributeSet = CreateDefaultSubobject<USweaponAttributeSet>(TEXT("AttributeSet"));
 
 	// 스프링 암 생성 및 부착
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));

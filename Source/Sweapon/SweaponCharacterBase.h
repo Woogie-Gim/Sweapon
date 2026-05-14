@@ -12,6 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class USweaponAttributeSet;
 
 UCLASS()
 class SWEAPON_API ASweaponCharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -51,6 +52,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+	USweaponAttributeSet* AttributeSet;
 	
 	// 실제 이동과 시점 회전을 처리할 함수 선언
 	void Move(const FInputActionValue& Value);
