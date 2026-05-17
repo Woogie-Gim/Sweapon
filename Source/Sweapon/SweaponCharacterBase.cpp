@@ -20,6 +20,11 @@ ASweaponCharacterBase::ASweaponCharacterBase()
 	// Attribute Set 생성 및 캐릭터 부착
 	AttributeSet = CreateDefaultSubobject<USweaponAttributeSet>(TEXT("AttributeSet"));
 
+	// 무기 메시 컴포넌트 생성 및 소켓 부착
+	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMesh->SetupAttachment(GetMesh(), TEXT("WeaponSocket"));
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 무기 자체의 물리 충돌 방지
+
 	// 스프링 암 생성 및 부착
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	// 스프링 암을 캐릭터의 최상위 컴포넌트(캡슐)에 부착
@@ -122,5 +127,18 @@ void ASweaponCharacterBase::PossessedBy(AController* NewController)
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+		// 컨트롤러 빙의 완료 후 기본 무기 장착 처리
+		EquipDefaultWeapon();
+	}
+}
+
+void ASweaponCharacterBase::EquipDefaultWeapon()
+{
+	if (AbilitySystemComponent)
+	{
+		// Weapon.Sword 태그 검색 및 ASC에 직접 부여
+		FGameplayTag SwordTag = FGameplayTag::RequestGameplayTag(FName("Weapon.Sword"));
+		AbilitySystemComponent->AddLooseGameplayTag(SwordTag);
 	}
 }

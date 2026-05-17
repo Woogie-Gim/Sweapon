@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "InputActionValue.h"
+#include "GameplayTagContainer.h"
 #include "SweaponCharacterBase.generated.h"
 
 class UAbilitySystemComponent;
@@ -58,10 +59,17 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	USweaponAttributeSet* AttributeSet;
+
+	// 임시 무기 외형 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UStaticMeshComponent* WeaponMesh;
 	
 	// 실제 이동과 시점 회전을 처리할 함수 선언
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	// 기본 무기 장착 및 태그 부여
+	void EquipDefaultWeapon();
 
 public:	
 	// Called every frame
