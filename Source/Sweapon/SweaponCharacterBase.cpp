@@ -129,7 +129,7 @@ void ASweaponCharacterBase::PossessedBy(AController* NewController)
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
 		// 컨트롤러 빙의 완료 후 기본 무기 장착 처리
-		EquipDefaultWeapon();
+		// EquipDefaultWeapon();
 	}
 }
 
