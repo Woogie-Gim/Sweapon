@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Controller.h"
 #include "SweaponAttributeSet.h"
+#include "SweaponGameplayAbilityBase.h"
 
 // Sets default values
 ASweaponCharacterBase::ASweaponCharacterBase()
@@ -76,6 +77,9 @@ void ASweaponCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 		// LookAction이 실행될 때(Triggered) Look 함수 호출
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASweaponCharacterBase::Look);
+		
+		// 공격 입력이 시작될 때(Started) 실행할 함수 연결
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ASweaponCharacterBase::InputAttackPressed);
 	}
 
 }
@@ -128,8 +132,8 @@ void ASweaponCharacterBase::PossessedBy(AController* NewController)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
-		// 컨트롤러 빙의 완료 후 기본 무기 장착 처리
-		// EquipDefaultWeapon();
+		// 컨트롤러 빙의 및 GAS 초기화 완료 후 어빌리티 부여
+		GiveDefaultAbilities();
 	}
 }
 
@@ -140,5 +144,42 @@ void ASweaponCharacterBase::EquipDefaultWeapon()
 		// Weapon.Sword 태그 검색 및 ASC에 직접 부여
 		FGameplayTag SwordTag = FGameplayTag::RequestGameplayTag(FName("Weapon.Sword"));
 		AbilitySystemComponent->AddLooseGameplayTag(SwordTag);
+	}
+}
+
+void ASweaponCharacterBase::GiveDefaultAbilities()
+{
+	// 서버 권한이 있거나 싱글플레이 환경일 때 어빌리티를 부여
+	if (HasAuthority() && AbilitySystemComponent)
+	{
+		for (TSubclassOf<USweaponGameplayAbilityBase>& AbilityClass : DefaultAbilities)
+		{
+			if (AbilityClass)
+			{
+				// 에디터에서 설정한 InputID를 가져와서 스펙을 만듦
+				int32 SelectedInputID = AbilityClass.GetDefaultObject()->InputID;
+
+				FGameplayAbilitySpec Spec(AbilityClass, 1, SelectedInputID);
+				AbilitySystemComponent->GiveAbility(Spec);
+			}
+		}
+	}
+}
+
+void ASweaponCharacterBase::InputAttackPressed()
+{
+	if (AbilitySystemComponent)
+	{
+		int32 AttackInputID = 1;
+
+		TArray<FGameplayAbilitySpec> ActivatableAbilities = AbilitySystemComponent->GetActivatableAbilities();
+
+		for (const FGameplayAbilitySpec& Spec : ActivatableAbilities)
+		{
+			if (Spec.InputID == AttackInputID)
+			{
+				AbilitySystemComponent->TryActivateAbility(Spec.Handle);
+			}
+		}
 	}
 }
